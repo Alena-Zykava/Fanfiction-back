@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const authRouter = require('./authRouter');
+const authRouter = require('./routers/authRouter');
+const fanficRouter = require('./routers/fanficRouter');
 const cors = require('cors');
 const PORT = process.env.PORT || 5000;
 
@@ -10,6 +11,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use('/auth', authRouter);
+app.use('/fanfic', fanficRouter);
 
 const start = async () => {
     try {

@@ -1,9 +1,9 @@
-const User = require('./models/User');
+const User = require('../models/User');
 
 const bcrypt = require('bcryptjs');
 const { validationResult } = require('express-validator');
 const jwt = require('jsonwebtoken');
-const { secret } = require('./config');
+const { secret } = require('../config');
 
 const generateAccessToken = (id) => {
     const payload = {
@@ -22,13 +22,13 @@ class authController {
             const { userName, password, email, dataRegistration, lastLoginData, status} = req.body;
             const candidate = await User.findOne({ userName });
             if (candidate) {
-                return res.status(400).json({massage: "A user with the same name already exists"})
+                return res.status(400).json({massage: 'A user with the same name already exists'})
             }
             const hashPassword = bcrypt.hashSync(password, 5);
             
             const user = new User({ userName, password: hashPassword, email, dataRegistration, lastLoginData, status});
             await user.save();
-            return res.json({massage: "User registered successfully"})
+            return res.json({massage: 'User registered successfully'})
         } catch (e) {
             console.log(e);
             res.status(400).json({massage: 'Registration error'})
