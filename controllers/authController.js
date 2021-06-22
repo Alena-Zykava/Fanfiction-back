@@ -1,8 +1,9 @@
-const User = require('../models/User');
-
 const bcrypt = require('bcryptjs');
 const { validationResult } = require('express-validator');
-const jwt = require('jsonwebtoken');
+
+const jwt = require('jsonwebtoken');const User = require('../models/User');
+const Role = require('../models/Role');
+
 const { secret } = require('../config');
 
 const generateAccessToken = (id) => {
@@ -19,19 +20,21 @@ class authController {
             if (!errors.isEmpty()) {
                 return res.status(400).json({ message: "Error validation", errors });
             }
-            const { userName, password, email, dataRegistration, lastLoginData, status} = req.body;
+            const { userName, password, email, dataRegistration, status} = req.body;
             const candidate = await User.findOne({ userName });
             if (candidate) {
                 return res.status(400).json({massage: 'A user with the same name already exists'})
             }
             const hashPassword = bcrypt.hashSync(password, 5);
             
-            const user = new User({ userName, password: hashPassword, email, dataRegistration, lastLoginData, status});
+            const userRole = await Role.findOne({ value: "USER" }); //why??
+                        
+            const user = new User({ userName,  email, dataRegistration, status, password: hashPassword, roles: [userRole.value] });
             await user.save();
-            return res.json({massage: 'User registered successfully'})
+            return res.json({ massage: 'User registered successfully' });
         } catch (e) {
             console.log(e);
-            res.status(400).json({massage: 'Registration error'})
+            res.status(400).json({ massage: 'Registration error' });
         }
     }
 
