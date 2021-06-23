@@ -38,19 +38,27 @@ class authController {
     async login(req, res) {
         try {
             const { userName, password } = req.body;
-            const user = await User.findOne({ userName });
-            if (!user) {
-                return res.status(400).json({ massage: `User ${userName} not found` });
-            };
-            const isValidPassword = bcrypt.compareSync(password, user.password);
-            if (!isValidPassword) {
-                return res.status(400).json({ massage: "Incorrect password entered" });
-            };
-            const token = generateAccessToken(user._id);
-            return res.json({ token, userName, userId: user._id });
+
+            const userData = await userService.login(userName, password );
+            
+            res.cookie('refreshToken', userData.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 100, httpOnly: true });
+
+            return res.json(userData);
+
         } catch (e) {
             res.status(400).json({massage: 'Login error'})
         }        
+    }
+
+    async logout(req, res) {
+        try {
+            const { refreshToken } = req.cookies;
+            const token = await userService.logout(refreshToken);
+            res.clearCookie('refreshToken');
+            return res.json(token);
+        } catch (e) {
+            console.log(e)
+        }
     }
 
     async activate(req, res) {
@@ -64,7 +72,15 @@ class authController {
     }
 
     async refresh(req, res) {
+        try {
+            const { refreshToken } = req.cookies;
+            const userData = await userService.refresh(refreshToken);
+            res.cookie('refreshToken', userData.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 100, httpOnly: true });
 
+            return res.json(userData);
+        } catch (e) {
+            console.log(e);
+        }
     }
 
     async getUsers(req, res) {
