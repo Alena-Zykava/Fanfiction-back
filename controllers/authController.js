@@ -6,16 +6,6 @@ const jwt = require('jsonwebtoken');//tokenService
 
 const User = require('../models/User');
 
-const { secret } = require('../config');
-
-
-const generateAccessToken = (id) => {
-    const payload = {
-        id
-    }
-    return jwt.sign(payload, secret, { expiresIn: "24h" });
-}
-
 class authController {
     async registration(req, res) {
         try {
@@ -83,8 +73,8 @@ class authController {
         }
     }
 
-    async getUsers(req, res) {
-        const id = req.user.id;
+    async getUsers(req, res) {        
+        const id = req.user.id;        
         const user = await User.findOne({ _id: id });
         if (user && user.status) {
             try {
@@ -93,7 +83,7 @@ class authController {
              } catch (e) {                
             } 
         } else {
-            res.status(403).json({massage: 'User not authorization'})
+            res.status(403).json({massage: 'User not authorization!!!!'})
         }
                              
     }
