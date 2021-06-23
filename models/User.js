@@ -6,6 +6,8 @@ const User = new Schema({
     email: { type: String, unique: true, required: true },
     dataRegistration: { type: String, required: true },
     status: { type: Boolean, required: true },
+    isVerification: { type: Boolean, required: true, default: false },
+    activationLink: {type: String},
     roles: [{ type: String, ref: 'Role' }]
 });
 

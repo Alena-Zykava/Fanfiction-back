@@ -1,10 +1,13 @@
-const bcrypt = require('bcryptjs');
-const { validationResult } = require('express-validator');
+const bcrypt = require('bcryptjs'); // userService
 
-const jwt = require('jsonwebtoken');const User = require('../models/User');
-const Role = require('../models/Role');
+const { validationResult } = require('express-validator');
+const userService = require('../service/user-service');
+const jwt = require('jsonwebtoken');//tokenService
+
+const User = require('../models/User');
 
 const { secret } = require('../config');
+
 
 const generateAccessToken = (id) => {
     const payload = {
@@ -21,17 +24,11 @@ class authController {
                 return res.status(400).json({ message: "Error validation", errors });
             }
             const { userName, password, email, dataRegistration, status} = req.body;
-            const candidate = await User.findOne({ userName });
-            if (candidate) {
-                return res.status(400).json({massage: 'A user with the same name already exists'})
-            }
-            const hashPassword = bcrypt.hashSync(password, 5);
+            const userData = await userService.registration(userName, password, email, dataRegistration, status);
             
-            const userRole = await Role.findOne({ value: "USER" }); //why??
-                        
-            const user = new User({ userName,  email, dataRegistration, status, password: hashPassword, roles: [userRole.value] });
-            await user.save();
-            return res.json({ massage: 'User registered successfully' });
+            res.cookie('refreshToken', userData.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 100, httpOnly: true });
+
+            return res.json(userData);
         } catch (e) {
             console.log(e);
             res.status(400).json({ massage: 'Registration error' });
@@ -54,6 +51,20 @@ class authController {
         } catch (e) {
             res.status(400).json({massage: 'Login error'})
         }        
+    }
+
+    async activate(req, res) {
+        try {
+            const activationLink = req.params.link;
+            await userService.activate(activationLink);
+            return res.redirect(process.env.CLIENT_URL)
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
+    async refresh(req, res) {
+
     }
 
     async getUsers(req, res) {
