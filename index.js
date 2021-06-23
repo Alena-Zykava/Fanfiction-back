@@ -1,8 +1,10 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const authRouter = require('./routers/authRouter');
 const fanficRouter = require('./routers/fanficRouter');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 const PORT = process.env.PORT || 5000;
 
 
@@ -10,6 +12,7 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
 app.use('/auth', authRouter);
 app.use('/fanfic', fanficRouter);
 

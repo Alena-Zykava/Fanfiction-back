@@ -1,17 +1,10 @@
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcryptjs'); // userService
+
 const { validationResult } = require('express-validator');
+const userService = require('../service/user-service');
+const jwt = require('jsonwebtoken');//tokenService
 
-const jwt = require('jsonwebtoken');const User = require('../models/User');
-const Role = require('../models/Role');
-
-const { secret } = require('../config');
-
-const generateAccessToken = (id) => {
-    const payload = {
-        id
-    }
-    return jwt.sign(payload, secret, { expiresIn: "24h" });
-}
+const User = require('../models/User');
 
 class authController {
     async registration(req, res) {
@@ -21,17 +14,11 @@ class authController {
                 return res.status(400).json({ message: "Error validation", errors });
             }
             const { userName, password, email, dataRegistration, status} = req.body;
-            const candidate = await User.findOne({ userName });
-            if (candidate) {
-                return res.status(400).json({massage: 'A user with the same name already exists'})
-            }
-            const hashPassword = bcrypt.hashSync(password, 5);
+            const userData = await userService.registration(userName, password, email, dataRegistration, status);
             
-            const userRole = await Role.findOne({ value: "USER" }); //why??
-                        
-            const user = new User({ userName,  email, dataRegistration, status, password: hashPassword, roles: [userRole.value] });
-            await user.save();
-            return res.json({ massage: 'User registered successfully' });
+            res.cookie('refreshToken', userData.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 100, httpOnly: true });
+
+            return res.json(userData);
         } catch (e) {
             console.log(e);
             res.status(400).json({ massage: 'Registration error' });
@@ -41,23 +28,53 @@ class authController {
     async login(req, res) {
         try {
             const { userName, password } = req.body;
-            const user = await User.findOne({ userName });
-            if (!user) {
-                return res.status(400).json({ massage: `User ${userName} not found` });
-            };
-            const isValidPassword = bcrypt.compareSync(password, user.password);
-            if (!isValidPassword) {
-                return res.status(400).json({ massage: "Incorrect password entered" });
-            };
-            const token = generateAccessToken(user._id);
-            return res.json({ token, userName, userId: user._id });
+
+            const userData = await userService.login(userName, password );
+            
+            res.cookie('refreshToken', userData.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 100, httpOnly: true });
+
+            return res.json(userData);
+
         } catch (e) {
             res.status(400).json({massage: 'Login error'})
         }        
     }
 
-    async getUsers(req, res) {
-        const id = req.user.id;
+    async logout(req, res) {
+        try {
+            const { refreshToken } = req.cookies;
+            const token = await userService.logout(refreshToken);
+            res.clearCookie('refreshToken');
+            return res.json(token);
+        } catch (e) {
+            console.log(e)
+        }
+    }
+
+    async activate(req, res) {
+        try {
+            const activationLink = req.params.link;
+            await userService.activate(activationLink);
+            return res.redirect(process.env.CLIENT_URL)
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
+    async refresh(req, res) {
+        try {
+            const { refreshToken } = req.cookies;
+            const userData = await userService.refresh(refreshToken);
+            res.cookie('refreshToken', userData.refreshToken, { maxAge: 30 * 24 * 60 * 60 * 100, httpOnly: true });
+
+            return res.json(userData);
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
+    async getUsers(req, res) {        
+        const id = req.user.id;        
         const user = await User.findOne({ _id: id });
         if (user && user.status) {
             try {
@@ -66,7 +83,7 @@ class authController {
              } catch (e) {                
             } 
         } else {
-            res.status(403).json({massage: 'User not authorization'})
+            res.status(403).json({massage: 'User not authorization!!!!'})
         }
                              
     }
