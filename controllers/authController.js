@@ -21,7 +21,7 @@ class authController {
             return res.json(userData);
         } catch (e) {
             console.log(e);
-            res.status(400).json({ massage: 'Registration error' });
+            res.status(400).json({message: e.message})
         }
     }
 
@@ -36,7 +36,8 @@ class authController {
             return res.json(userData);
 
         } catch (e) {
-            res.status(400).json({massage: 'Login error'})
+            console.log(e);
+            res.status(400).json({message: e.message})
         }        
     }
 
@@ -48,6 +49,7 @@ class authController {
             return res.json(token);
         } catch (e) {
             console.log(e)
+            res.status(400).json({message: e.message})
         }
     }
 
@@ -55,9 +57,10 @@ class authController {
         try {
             const activationLink = req.params.link;
             await userService.activate(activationLink);
-            return res.redirect(process.env.CLIENT_URL)
+            return res.redirect(`${process.env.CLIENT_URL}/login`);
         } catch (e) {
             console.log(e);
+            res.status(400).json({message: e.message})
         }
     }
 
@@ -70,6 +73,7 @@ class authController {
             return res.json(userData);
         } catch (e) {
             console.log(e);
+            res.status(400).json({message: e.message})
         }
     }
 
@@ -83,7 +87,7 @@ class authController {
              } catch (e) {                
             } 
         } else {
-            res.status(403).json({massage: 'User not authorization!!!!'})
+            res.status(403).json({message: 'User not authorization!!!!'})
         }
                              
     }
@@ -92,9 +96,9 @@ class authController {
         try {
             const { usersName } = req.body;
             await User.deleteMany({ userName: { $in: usersName } });
-            return res.json({ massage: "User delete" });
+            return res.json({ message: "User delete" });
         } catch (e) {
-            res.status(400).json({massage: 'Error delete'})
+            res.status(400).json({message: 'Error delete'})
         }
     }
 
@@ -105,9 +109,9 @@ class authController {
                 { userName: { $in: usersName } },
                 { $set: { status } }
               );
-            return res.json({ massage: "User update" });
+            return res.json({ message: "User update" });
         } catch (e) {
-            res.status(400).json({massage: 'Error update'})
+            res.status(400).json({message: 'Error update'})
         }
     }
 }

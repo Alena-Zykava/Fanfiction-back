@@ -11,11 +11,11 @@ class UserService {
     async registration(userName, password, email, dataRegistration, status) {
         const candidate = await UserModel.findOne({ userName });
         if (candidate) {
-            return res.status(400).json({massage: 'A user with the same name already exists'})
+            throw new Error('A user with the same name already exists');  
         }
         const hashPassword = bcrypt.hashSync(password, 5);
         
-        const userRole = await Role.findOne({ value: "USER" }); //why??
+        const userRole = await Role.findOne({ value: "USER" }); 
 
         const activationLink = uuid.v4();
                     
@@ -42,11 +42,14 @@ class UserService {
     async login(userName, password) {
         const user = await UserModel.findOne({ userName });
         if (!user) {
-            return res.status(400).json({ massage: `User ${userName} not found` });
+            throw new Error(`User ${userName} not found`);            
         };
+        if (!user.isVerification) {
+            throw new Error(`User ${userName} did not confirm email`);            
+        }
         const isValidPassword = bcrypt.compareSync(password, user.password);
         if (!isValidPassword) {
-            return res.status(400).json({ massage: "Incorrect password entered" });
+            throw new Error("Incorrect password entered");      
         };
         const userDto = new UserDto(user);
         const tokens = tokenService.generateTokens({ ...userDto });
