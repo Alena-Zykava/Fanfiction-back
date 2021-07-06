@@ -2,11 +2,13 @@ const Fanfic = require('../models/Fanfic');
 
 class fanficController {
     async addFanfic(req, res) {
-        // TODO change token
+        // TODO token
         try {
-            const { title, shortDescription, idUser, subtitle, lastDataUpdate } = req.body;
+            const { title, shortDescription, userName, subtitle } = req.body;
 
-            const fanfic = new Fanfic({ title, shortDescription, idUser, subtitle, lastDataUpdate });
+            const lastDataUpdate = new Date().toLocaleDateString();
+
+            const fanfic = new Fanfic({ title, shortDescription, userName, subtitle, lastDataUpdate });
             await fanfic.save();
             return res.json({message: 'Fanfic notes successfully', idFanfic: fanfic._id})
         } catch (e) {
@@ -39,13 +41,47 @@ class fanficController {
 
     async getUserFanfics(req, res) {
         try {
-            const userId = req.params.userId;            
-            const userFanfics = await Fanfic.find({ idUser: userId });
+            const userName = req.params.userId;            
+            const userFanfics = await Fanfic.find({ userName });
             return res.json(userFanfics);
             
         } catch (e) {
             console.log(e);
             return res.status(403).json({ message: 'Users fanfics not found' });
+        }
+    }
+
+    async deleteFanfic(req, res) {
+        try {
+            const { id } = req.params;
+            console.log("body",req.params);
+            const fanfic = await Fanfic.findOne({ _id: id });
+            
+            if (!fanfic) {
+                res.status(400).json({message: 'Not found fanfic'})
+            }
+            await fanfic.deleteOne();
+            return res.json({ message: "Fanfic delete" });
+            
+        } catch (e) {
+            res.status(400).json({message: 'Error delete fanfic'})
+        }
+    }
+
+    async updateFanfic(req, res) {
+        try {
+            const { title, shortDescription, userName, subtitle, id } = req.body;            
+
+            const lastDataUpdate = new Date().toLocaleDateString();
+
+            await Fanfic.updateOne(
+                { _id: id },
+                { $set: {title, shortDescription, userName, subtitle, lastDataUpdate}}
+            )
+            return res.json({message: 'Fanfic update', idFanfic: id })
+        } catch (e) {
+            console.log(e);
+            res.status(400).json({message: 'Error update fanfic'})
         }
     }
 }
