@@ -5,6 +5,7 @@ const Fanfic = new Schema({
     shortDescription: { type: String, require: true },
     userName: { type: String, require: true },
     subtitle: { type: String, require: true },
+    image: {type: String},
     lastDataUpdate: { type: String, require: true } //Data.now??
 });
 
