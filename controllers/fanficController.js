@@ -4,11 +4,9 @@ class fanficController {
     async addFanfic(req, res) {
         // TODO token
         try {
-            const { title, shortDescription, userName, subtitle, image } = req.body;
+            const { title, shortDescription, userName, subtitle, image } = req.body;           
 
-            const lastDataUpdate = new Date().toLocaleDateString();
-
-            const fanfic = new Fanfic({ title, shortDescription, userName, subtitle, lastDataUpdate, image });
+            const fanfic = new Fanfic({ title, shortDescription, userName, subtitle, image });
             await fanfic.save();
             return res.json({message: 'Fanfic notes successfully', idFanfic: fanfic._id})
         } catch (e) {
@@ -72,7 +70,7 @@ class fanficController {
         try {
             const { title, shortDescription, userName, subtitle, id, image } = req.body;            
 
-            const lastDataUpdate = new Date().toLocaleDateString();
+            const lastDataUpdate = new Date();
 
             await Fanfic.updateOne(
                 { _id: id },
