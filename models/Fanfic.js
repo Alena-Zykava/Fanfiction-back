@@ -6,7 +6,7 @@ const Fanfic = new Schema({
     userName: { type: String, require: true },
     subtitle: { type: String, require: true },
     image: {type: String},
-    lastDataUpdate: { type: String, require: true } //Data.now??
+    lastDataUpdate: { type: Date, default: Date.now }
 });
 
 module.exports = model('Fanfic', Fanfic);
