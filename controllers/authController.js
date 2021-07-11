@@ -37,7 +37,7 @@ class authController {
 
         } catch (e) {
             console.log(e);
-            res.status(400).json({message: e.message})
+            res.status(403).json({message: e.message})
         }        
     }
 
@@ -80,14 +80,16 @@ class authController {
     async getUsers(req, res) {        
         const id = req.user.id;        
         const user = await User.findOne({ _id: id });
-        if (user && user.status) {
+        const isAdmin = user.roles.indexOf('ADMIN') !== -1;
+        
+        if (user && isAdmin) {
             try {
                 const users = await User.find();
                 return res.json(users);
              } catch (e) {                
             } 
         } else {
-            res.status(403).json({message: 'User not authorization!!!!'})
+            res.status(403).json({message: 'User is not ADMIN!'})
         }
                              
     }
@@ -102,12 +104,25 @@ class authController {
         }
     }
 
-    async updateUser(req, res){
+    async updateUserStatus(req, res){
         try {
             const { usersName, status } = req.body;
             await User.updateMany(
                 { userName: { $in: usersName } },
                 { $set: { status } }
+              );
+            return res.json({ message: "User update" });
+        } catch (e) {
+            res.status(400).json({message: 'Error update'})
+        }
+    }
+
+    async updateUserRoles(req, res){
+        try {
+            const { usersName, roles } = req.body;
+            await User.updateMany(
+                { userName: { $in: usersName } },
+                { $set: { roles } }
               );
             return res.json({ message: "User update" });
         } catch (e) {

@@ -19,7 +19,8 @@ router.get('/refresh', authController.refresh);
 
 
 router.post('/delete', authController.deleteUser);
-router.post('/update', authController.updateUser);
+router.post('/update_status', authController.updateUserStatus);
+router.post('/update_roles', authController.updateUserRoles);
 
 
 router.get('/users', authMiddleware, authController.getUsers);

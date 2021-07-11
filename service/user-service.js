@@ -15,7 +15,7 @@ class UserService {
         }
         const hashPassword = bcrypt.hashSync(password, 5);
         
-        const userRole = await Role.findOne({ value: "ADMIN" }); 
+        const userRole = await Role.findOne({ value: "USER" }); 
 
         const activationLink = uuid.v4();
                     
@@ -46,6 +46,9 @@ class UserService {
         };
         if (!user.isVerification) {
             throw new Error(`User ${userName} did not confirm email`);            
+        }
+        if (!user.status) {
+            throw new Error(`User ${userName} is blok!`);            
         }
         const isValidPassword = bcrypt.compareSync(password, user.password);
         if (!isValidPassword) {
